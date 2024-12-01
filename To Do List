@@ -1,0 +1,82 @@
+import tkinter as tk
+from tkinter import messagebox
+import pickle
+
+# Load the existing to-do list from a file, or initialize an empty list
+try:
+    with open('todo_list.pkl', 'rb') as f:
+        todo_list = pickle.load(f)
+except (FileNotFoundError, EOFError):
+    todo_list = []
+
+def save_to_file():
+    with open('todo_list.pkl', 'wb') as f:
+        pickle.dump(todo_list, f)
+
+def add_task():
+    task = task_entry.get()
+    if task != "":
+        todo_list.append({'task': task, 'completed': False})
+        task_entry.delete(0, tk.END)
+        save_to_file()
+        update_task_listbox()
+    else:
+        messagebox.showwarning("Input Error", "Task description cannot be empty.")
+
+def delete_task():
+    try:
+        selected_task = task_listbox.curselection()[0]
+        del todo_list[selected_task]
+        save_to_file()
+        update_task_listbox()
+    except IndexError:
+        messagebox.showwarning("Selection Error", "No task selected.")
+
+def mark_completed():
+    try:
+        selected_task = task_listbox.curselection()[0]
+        todo_list[selected_task]['completed'] = True
+        save_to_file()
+        update_task_listbox()
+    except IndexError:
+        messagebox.showwarning("Selection Error", "No task selected.")
+
+def update_task_listbox():
+    task_listbox.delete(0, tk.END)
+    for task in todo_list:
+        status = "Completed" if task['completed'] else "Pending"
+        task_listbox.insert(tk.END, f"{task['task']} - {status}")
+
+# Create the main window
+root = tk.Tk()
+root.title("To-Do List Application")
+root.geometry("400x400")  # Set a fixed window size
+root.config(bg="#f0f8ff")  # Set background color
+
+# Custom font
+font = ("Helvetica", 12)
+
+# Create widgets
+task_entry = tk.Entry(root, width=40, font=font, bd=2)
+add_button = tk.Button(root, text="Add Task", command=add_task, font=("Helvetica", 12, "bold"), bg="#4CAF50", fg="white", padx=10, pady=5)
+delete_button = tk.Button(root, text="Delete Task", command=delete_task, font=("Helvetica", 12, "bold"), bg="#f44336", fg="white", padx=10, pady=5)
+complete_button = tk.Button(root, text="Mark as Completed", command=mark_completed, font=("Helvetica", 12, "bold"), bg="#008CBA", fg="white", padx=10, pady=5)
+task_listbox = tk.Listbox(root, width=50, height=10, font=font, selectmode=tk.SINGLE, bd=2)
+
+# Pack widgets with padding for better alignment
+task_entry.pack(pady=10)
+
+add_button.pack(pady=5)
+delete_button.pack(pady=5)
+complete_button.pack(pady=5)
+task_listbox.pack(pady=10)
+
+# Credit Label
+credit_label = tk.Label(root, text="Developed by Harshal Pawar", font=("Helvetica", 10, "italic"), bg="#f0f8ff")
+credit_label.pack(side=tk.BOTTOM, pady=10)
+
+# Update the listbox initially
+update_task_listbox()
+
+# Run the application
+root.mainloop()
